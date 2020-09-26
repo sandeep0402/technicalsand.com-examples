@@ -1,0 +1,28 @@
+<html xmlns:th="https://www.thymeleaf.org">
+<head >
+    <title>technicalsand.com - Please Login</title>
+</head>
+<body>
+<div th:fragment="content">
+    <h1>Spring Boot Security Example by <a href="https://technicalsand.com/">Technicalsand.com</a></h1>
+    <form name="f" th:action="@{/login}" method="post">
+        <fieldset>
+            <legend>Please Login here</legend>
+            <div th:if="${param.error}" class="alert alert-error">
+                Invalid username and password.
+            </div>
+            <div th:if="${param.logout}" class="alert alert-success">
+                You have been logged out, Please login again.
+            </div>
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" value="technicalsand"/>
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" value="password1"/>
+            <div class="form-actions">
+                <button type="submit" class="btn">Log in</button>
+            </div>
+        </fieldset>
+    </form>
+</div>
+</body>
+</html>

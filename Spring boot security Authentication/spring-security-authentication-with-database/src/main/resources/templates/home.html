@@ -1,0 +1,15 @@
+<html xmlns:th="https://www.thymeleaf.org">
+<head >
+    <title>Technicalsand.com - Please Login</title>
+</head>
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body style="text-align: center;" th:fragment="content">
+    <h1>Spring Boot Security Example by <a href="https://technicalsand.com/">Technicalsand.com</a></h1>
+    <div>Welcome <span th:text="${principal.getName()}"></span></div>
+    <br/>
+    <a href="/logout">logout</a>
+</body>
+</html>
