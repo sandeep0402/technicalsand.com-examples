@@ -40,10 +40,13 @@ public class AsyncConfig implements AsyncConfigurer {
     public Executor getAsyncExecutor() {
         log.debug("Create Async Task Executor");
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(taskExecutionProperties.getPool().getCoreSize());
-        executor.setMaxPoolSize(taskExecutionProperties.getPool().getMaxSize());
-        executor.setQueueCapacity(taskExecutionProperties.getPool().getQueueCapacity());
-        executor.setThreadNamePrefix(taskExecutionProperties.getThreadNamePrefix());
+//        executor.setCorePoolSize(taskExecutionProperties.getPool().getCoreSize());
+//        executor.setMaxPoolSize(taskExecutionProperties.getPool().getMaxSize());
+//        executor.setQueueCapacity(taskExecutionProperties.getPool().getQueueCapacity());
+//        executor.setThreadNamePrefix(taskExecutionProperties.getThreadNamePrefix());
+        executor.setCorePoolSize(1);
+        executor.setMaxPoolSize(2);
+        executor.setQueueCapacity(50);
         return executor;
     }
 

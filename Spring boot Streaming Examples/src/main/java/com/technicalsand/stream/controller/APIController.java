@@ -8,24 +8,35 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import reactor.core.publisher.Flux;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.time.Duration;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @RequestMapping("/api/stream")
 @RestController
 public class APIController {
 
 	@GetMapping("/content")
-	public ResponseEntity<StreamingResponseBody> streamContent () {
+	public ResponseEntity<StreamingResponseBody> streamContent() {
 		StreamingResponseBody responseBody = response -> {
 			for (int i = 1; i <= 1000; i++) {
-				response.write(("Data stream line - " + i +"\n").getBytes());
+				response.write(("Data stream line - " + i + "\n").getBytes());
 				response.flush();
 				try {
 					Thread.sleep(10);
@@ -41,10 +52,10 @@ public class APIController {
 	}
 
 	@GetMapping("/textfile")
-	public ResponseEntity<StreamingResponseBody> streamContentAsFile () {
+	public ResponseEntity<StreamingResponseBody> streamContentAsFile() {
 		StreamingResponseBody responseBody = response -> {
 			for (int i = 1; i <= 1000; i++) {
-				response.write(("Data stream line - " + i +"\n").getBytes());
+				response.write(("Data stream line - " + i + "\n").getBytes());
 				response.flush();
 				try {
 					Thread.sleep(10);
@@ -60,34 +71,29 @@ public class APIController {
 				.body(responseBody);
 	}
 
-	@GetMapping("/staticfile")
-	public ResponseEntity<StreamingResponseBody> streamPdfFile () throws FileNotFoundException {
+	@GetMapping("/pdfFile")
+	public ResponseEntity<StreamingResponseBody> streamPdfFile() throws FileNotFoundException {
 		String fileName = "Technicalsand.com sample data.pdf";
-		File file = ResourceUtils.getFile("classpath:static/"+fileName);
+		File file = ResourceUtils.getFile("classpath:static/" + fileName);
 		StreamingResponseBody responseBody = outputStream -> {
 			Files.copy(file.toPath(), outputStream);
 		};
 		//return new ResponseEntity(responseBody, HttpStatus.OK);
 		return ResponseEntity.ok()
-				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Downloaded_"+fileName)
+				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Downloaded_" + fileName)
 				.contentType(MediaType.APPLICATION_PDF)
 				.body(responseBody);
 	}
 
 	@GetMapping("/json")
-	public ResponseEntity<StreamingResponseBody> streamJson () {
+	public ResponseEntity<StreamingResponseBody> streamJson() {
 		int maxRecords = 1000;
 		StreamingResponseBody responseBody = response -> {
-			response.write("{\"students\":[".getBytes());
-			response.flush();
 			for (int i = 1; i <= maxRecords; i++) {
 				Student st = new Student("Name" + i, i);
-				//response.flush();
-				//Creating the ObjectMapper object
 				ObjectMapper mapper = new ObjectMapper();
-				//Converting the Object to JSONString
 				String jsonString = mapper.writeValueAsString(st);
-				if( i < maxRecords){
+				if (i < maxRecords) {
 					jsonString += ",";
 				}
 				response.write(jsonString.getBytes());
@@ -98,18 +104,61 @@ public class APIController {
 					e.printStackTrace();
 				}
 			}
-			response.write("]}".getBytes());
-			response.flush();
-
 		};
-		//return new ResponseEntity(responseBody, HttpStatus.OK);
 		return ResponseEntity.ok()
 				.contentType(MediaType.APPLICATION_STREAM_JSON)
 				.body(responseBody);
 	}
 
-	@GetMapping(value = "/json/objects", produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
+	@GetMapping(value = "/json/flux", produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
 	public Flux<Student> streamJsonObjects() {
+		//return studentRepository.findAll();
 		return Flux.interval(Duration.ofSeconds(1)).map(i -> new Student("Name" + i, i.intValue()));
+	}
+
+	@GetMapping(value = "/csv")
+	public ResponseEntity<StreamingResponseBody> getCsvFile() {
+		StreamingResponseBody stream = output -> {
+			Writer writer = new BufferedWriter(new OutputStreamWriter(output));
+			writer.write("name,rollNo"+"\n");
+			for (int i = 1; i <= 10000; i++) {
+				Student st = new Student("Name" + i, i);
+				writer.write(st.getName() + "," + st.getRollNo() + "\n");
+				writer.flush();
+			}
+		};
+		return ResponseEntity.ok()
+				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=data.csv")
+				.contentType(MediaType.TEXT_PLAIN)
+				.body(stream);
+	}
+
+	@GetMapping(value = "/zip")
+	public ResponseEntity<StreamingResponseBody> getZipFileStream() {
+		StreamingResponseBody stream = output -> writeToStream(output);
+		return ResponseEntity.ok()
+				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=report.zip")
+				.contentType(MediaType.APPLICATION_OCTET_STREAM)
+				.body(stream);
+	}
+
+	public void writeToStream(OutputStream os) throws IOException {
+		ZipOutputStream zipOut = new ZipOutputStream(new BufferedOutputStream(os));
+		ZipEntry e = new ZipEntry("data.csv");
+		zipOut.putNextEntry(e);
+		Writer writer = new BufferedWriter(new OutputStreamWriter(zipOut, Charset.forName("UTF-8").newEncoder()));
+		for (int i = 1; i <= 1000; i++) {
+			Student st = new Student("Name" + i, i);
+			writer.write(st.getName() + "," + st.getRollNo() + "\n");
+			writer.flush();
+		}
+		if (writer != null) {
+			try {
+				writer.flush();
+				writer.close();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+		}
 	}
 }

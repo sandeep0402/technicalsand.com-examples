@@ -21,7 +21,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/audiovideo")
-public class VideoController {
+public class AudioVideoController {
 	public static final String VIDEO_PATH = "/static/videos";
 	public static final String AUDIO_PATH = "/static/audios";
 
