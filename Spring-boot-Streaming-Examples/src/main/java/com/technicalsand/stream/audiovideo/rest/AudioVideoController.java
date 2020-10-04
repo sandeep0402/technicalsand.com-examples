@@ -39,7 +39,7 @@ public class AudioVideoController {
 		return Mono.just(getContent(AUDIO_PATH, fileName, httpRangeList, "audio"));
 	}
 
-	public ResponseEntity<byte[]> getContent(String location, String fileName, String range, String contentTypePrefix) {
+	private ResponseEntity<byte[]> getContent(String location, String fileName, String range, String contentTypePrefix) {
 		long rangeStart = 0;
 		long rangeEnd;
 		byte[] data;
@@ -73,7 +73,7 @@ public class AudioVideoController {
 		}
 		String contentLength = String.valueOf((rangeEnd - rangeStart) + 1);
 		return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
-				.header("Content-Type", "video/" + fileType)
+				.header("Content-Type", contentTypePrefix+"/" + fileType)
 				.header("Accept-Ranges", "bytes")
 				.header("Content-Length", contentLength)
 				.header("Content-Range", "bytes" + " " + rangeStart + "-" + rangeEnd + "/" + fileSize)

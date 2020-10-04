@@ -32,23 +32,55 @@ import java.util.zip.ZipOutputStream;
 @RestController
 public class APIController {
 
-	@GetMapping("/content")
-	public ResponseEntity<StreamingResponseBody> streamContent() {
+	@GetMapping(value="/data")
+	public ResponseEntity<StreamingResponseBody> streamData() {
 		StreamingResponseBody responseBody = response -> {
 			for (int i = 1; i <= 1000; i++) {
-				response.write(("Data stream line - " + i + "\n").getBytes());
-				response.flush();
 				try {
 					Thread.sleep(10);
+					response.write(("Data stream line - " + i + "\n").getBytes());
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 			}
 		};
-		//return new ResponseEntity(responseBody, HttpStatus.OK);
 		return ResponseEntity.ok()
 				.contentType(MediaType.TEXT_PLAIN)
 				.body(responseBody);
+	}
+
+
+	@GetMapping(value = "/data/flux", produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
+	public Flux<Object> streamDataFlux() {
+		return Flux.interval(Duration.ofSeconds(1)).map(i -> "Data stream line - " + i );
+	}
+
+	@GetMapping("/json")
+	public ResponseEntity<StreamingResponseBody> streamJson() {
+		int maxRecords = 1000;
+		StreamingResponseBody responseBody = response -> {
+			for (int i = 1; i <= maxRecords; i++) {
+				Student st = new Student("Name" + i, i);
+				ObjectMapper mapper = new ObjectMapper();
+				String jsonString = mapper.writeValueAsString(st) +"\n";
+				response.write(jsonString.getBytes());
+				response.flush();
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		};
+		return ResponseEntity.ok()
+				.contentType(MediaType.APPLICATION_STREAM_JSON)
+				.body(responseBody);
+	}
+
+	@GetMapping(value = "/json/flux", produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
+	public Flux<Student> streamJsonObjects() {
+		//return studentRepository.findAll();
+		return Flux.interval(Duration.ofSeconds(1)).map(i -> new Student("Name" + i, i.intValue()));
 	}
 
 	@GetMapping("/textfile")
@@ -64,7 +96,6 @@ public class APIController {
 				}
 			}
 		};
-		//return new ResponseEntity(responseBody, HttpStatus.OK);
 		return ResponseEntity.ok()
 				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=test_data.txt")
 				.contentType(MediaType.APPLICATION_OCTET_STREAM)
@@ -78,42 +109,10 @@ public class APIController {
 		StreamingResponseBody responseBody = outputStream -> {
 			Files.copy(file.toPath(), outputStream);
 		};
-		//return new ResponseEntity(responseBody, HttpStatus.OK);
 		return ResponseEntity.ok()
 				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Downloaded_" + fileName)
 				.contentType(MediaType.APPLICATION_PDF)
 				.body(responseBody);
-	}
-
-	@GetMapping("/json")
-	public ResponseEntity<StreamingResponseBody> streamJson() {
-		int maxRecords = 1000;
-		StreamingResponseBody responseBody = response -> {
-			for (int i = 1; i <= maxRecords; i++) {
-				Student st = new Student("Name" + i, i);
-				ObjectMapper mapper = new ObjectMapper();
-				String jsonString = mapper.writeValueAsString(st);
-				if (i < maxRecords) {
-					jsonString += ",";
-				}
-				response.write(jsonString.getBytes());
-				response.flush();
-				try {
-					Thread.sleep(10);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-		};
-		return ResponseEntity.ok()
-				.contentType(MediaType.APPLICATION_STREAM_JSON)
-				.body(responseBody);
-	}
-
-	@GetMapping(value = "/json/flux", produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
-	public Flux<Student> streamJsonObjects() {
-		//return studentRepository.findAll();
-		return Flux.interval(Duration.ofSeconds(1)).map(i -> new Student("Name" + i, i.intValue()));
 	}
 
 	@GetMapping(value = "/csv")
