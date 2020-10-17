@@ -1,0 +1,91 @@
+<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{template}">
+<body>
+    <div layout:fragment="content">
+        <script src = "/webjars/jquery/3.5.1/jquery.min.js"></script>
+        <script src = "/webjars/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+        <script src = "/webjars/sockjs-client/sockjs.min.js"></script>
+        <script src = "/webjars/stomp-websocket/stomp.min.js"></script>
+        <link href="/webjars/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+        <h3> Websocket- Broadcast Message Example by <a href="https://technicalsand.com">Technicalsand</a> </h3>
+        <br/>
+        <div id="events"></div>
+        <div id = "main-content" class = "container">
+            <form>
+                <div class="form-row">
+                    <button id="connect" class="btn btn-success mb-2 " type="submit">Connect</button>
+                    <button id="disconnect" class="btn btn-danger mx-sm-3 mb-2" type="submit" disabled="disabled">Disconnect</button>
+                </div>
+            </form>
+            <form>
+                <div class="form-row">
+                    <label class="my-1 mr-2" for="name">Your Message:</label>
+                    <div class="col-8">
+                        <input type="text" class="form-control" id="name" placeholder="Enter message">
+                    </div>
+                    <button id = "send" class = "btn btn-primary" type = "submit" disabled>Send</button>
+                </div>
+            </form>
+            <br/>
+            <div class="row">
+                <div class="col-md-12">
+                    <table class="table table-bordered table-striped">
+                        <thead class="thead-dark">
+                        <tr>
+                            <th>Messages</th>
+                        </tr>
+                        </thead>
+                        <tbody id="messages"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="application/javascript">
+        var stompClient = null;
+
+        function setConnected(connected) {
+            $("#connect").prop("disabled", connected);
+            $("#disconnect").prop("disabled", !connected);
+            $("#send").prop("disabled", !connected);
+
+            $("#messages").html("");
+        }
+
+        function connect() {
+            var socket = new SockJS('/technicalsand.com-websockets');
+            stompClient = Stomp.over(socket);
+            stompClient.connect({}, function (frame) {
+                setConnected(true);
+                console.log('Connected: ' + frame);
+                stompClient.subscribe('/topic/news', function (response) {
+                    showGreeting(JSON.parse(response.body).content);
+                });
+            });
+        }
+        function disconnect() {
+            if (stompClient !== null) {
+                stompClient.disconnect();
+            }
+            setConnected(false);
+            console.log("Disconnected");
+        }
+        function sendName() {
+            stompClient.send("/app/news", {}, JSON.stringify({'content': $("#name").val()}));
+        }
+        function showGreeting(message) {
+            $("#messages").append("<tr><td>" + message + "</td></tr>");
+        }
+        $(document).ready(function() {
+            $( "form" ).on('submit', function (e) {e.preventDefault();});
+            $( "#connect" ).click(function() { connect(); });
+            $( "#disconnect" ).click(function() { disconnect(); });
+            $( "#send" ).click(function() { sendName(); });
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,45 @@
+plugins {
+	id 'org.springframework.boot' version '2.3.4.RELEASE'
+	id 'io.spring.dependency-management' version '1.0.10.RELEASE'
+	id 'java'
+}
+
+group = 'com.technicalsand'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+	compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.11'
+	compile group: 'org.webjars', name: 'webjars-locator', version: '0.40'
+	compile group: 'org.webjars', name: 'sockjs-client', version: '1.1.2'
+	compile group: 'org.webjars', name: 'stomp-websocket', version: '2.3.3-1'
+	compile group: 'org.webjars', name: 'bootstrap', version: '4.5.2'
+	compile group: 'org.webjars', name: 'jquery', version: '3.5.1'
+
+	compile 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	testAnnotationProcessor 'org.projectlombok:lombok'
+	testImplementation('org.springframework.boot:spring-boot-starter-test') {
+		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+	}
+	testImplementation 'io.projectreactor:reactor-test'
+}
+
+test {
+	useJUnitPlatform()
+}

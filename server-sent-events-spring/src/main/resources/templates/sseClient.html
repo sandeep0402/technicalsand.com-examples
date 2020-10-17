@@ -1,0 +1,34 @@
+<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{template}">
+<body>
+    <script src = "/webjars/jquery/3.5.1/jquery.min.js"></script>
+
+    <div layout:fragment="content">
+        <h3> SSE events - Client</h3>
+        <div id="events"></div>
+    </div>
+    <script type="application/javascript">
+        var subscribeEvents = function() {
+            var key = $("#key").val();
+            var eventSource = new EventSource('/sse/receive');
+
+            eventSource.onmessage = function(e) {
+                var notification = JSON.parse(e.data);
+                if(key == notification.key){
+                    var d = new Date(notification.localDateTime);
+                    var html  = "<span><b>New event</b> on <i>" + d.toLocaleDateString()+" " + d.toLocaleTimeString() + "</i>: "
+                        + "["+notification.user+"'s Action] "+ notification.message + "</span>";
+                    document.getElementById("events").innerHTML = html + "<br/>" + document.getElementById("events").innerHTML;
+                }
+            };
+        }
+        window.onload = subscribeEvents;
+        window.onbeforeunload = function() {
+            eventSource.close();
+        }
+    </script>
+
+</body>
+</html>

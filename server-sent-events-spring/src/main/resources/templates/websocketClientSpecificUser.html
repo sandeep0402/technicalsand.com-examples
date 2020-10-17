@@ -1,0 +1,171 @@
+<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{template}">
+
+<body>
+    <div layout:fragment="content">
+        <script src = "/webjars/jquery/3.5.1/jquery.min.js"></script>
+        <script src = "/webjars/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+        <script src = "/webjars/sockjs-client/sockjs.min.js"></script>
+        <script src = "/webjars/stomp-websocket/stomp.min.js"></script>
+
+        <link href="/webjars/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+        <h3> Websocket- Specific User Message by <a href="https://technicalsand.com">Technicalsand</a> </h3>
+        <br/>
+        <div id="main-content" class="container">
+            <div class="row">
+                <form class="form-inline">
+                    <div class="form-group mx-sm-3 mb-2">
+                        <label for="login" class="">Enter Name:</label>
+                        <input type="text" class="form-control" id="login" placeholder="Enter name" th:value="${defaultUser}">
+                    </div>
+                    <button id="connect" class="btn btn-success mb-2" type="submit">Connect</button>
+                    <button id="disconnect" class="btn btn-danger mx-sm-3 mb-2" type="submit" disabled="disabled">Disconnect</button>
+                </form>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <br/>
+                    <table id="conversation" class="table table-striped">
+                        <thead>
+                        <tr>
+                            <th>From</th>
+                            <th>Time</th>
+                            <th>Message</th>
+                        </tr>
+                        </thead>
+                        <tbody id="messages">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-3">
+                    <h5 class="text-info">Live Users</h5>
+                    <ul id="users" class="list-group">
+                        <li class='list-group-item text-danger'>No other user Present.</li>
+                    </ul>
+                </div>
+                <div class="col-md-3 border-left">
+                    <form id="messageform">
+                        <div class="form-group ">
+                            <label for="toUser" >Send To</label>
+                            <input type="text" class="form-control" id="toUser" aria-describedby="toUserHelp">
+                            <small id="toUserHelp" class="form-text text-muted">Name of receiver</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="content" >Message</label>
+                            <textarea id="content" class="form-control" placeholder="Your message here..."></textarea>
+                        </div>
+                        <button id="send" class="btn btn-success " type="submit">Send</button>
+                        <button id="blockSend" class="btn btn-danger disabled" >Not connected</button>
+                        <div id="alert" class="alert alert-success mt-2 d-none" role="alert">
+                            Message sent successfully.
+                        </div>
+                    </form>
+                </div>
+            </div>
+            </form>
+
+        </div>
+
+        <script>
+
+            //  /msg/sendcommuser
+            var stompClient = null;
+            function setConnected(connected) {
+                $("#login").prop("disabled", connected);
+                $("#connect").prop("disabled", connected);
+                $("#disconnect").prop("disabled", !connected);
+                if (connected) {
+                    $("#blockSend").hide();
+                    $("#send").show();
+                }
+                else {
+                    $("#send").hide();
+                    $("#blockSend").show();
+                }
+                $("#messages").html("");
+            }
+
+            function connect() {
+                //Pass the user key value
+                var login = $("#login").val();
+                var socket = new SockJS('/technicalsand.com-websockets');
+                stompClient = Stomp.over(socket);
+                stompClient.connect({login:login}, function (frame) {
+                    setConnected(true);
+                    console.log('Connected: ' + frame);
+                    stompClient.subscribe('/user/topic/message', function (response) {
+                        showMessage(JSON.parse(response.body));
+                    });
+                });
+            }
+
+            function disconnect() {
+                if (stompClient != null) {
+                    stompClient.disconnect();
+                }
+                setConnected(false);
+                console.log("Disconnected");
+            }
+
+            function sendName() {
+                stompClient.send("/app/websocket/message", {},
+                    JSON.stringify({'toUser': $("#toUser").val(),
+                        'content': $("#content").val(),
+                        'fromUser': $("#login").val()
+                    }));
+                $(".alert").removeClass("d-none");
+                setTimeout(function() {
+                    $(".alert").addClass("d-none");
+                }, 3000);
+            }
+
+
+            function showMessage(message) {
+                $("#messages").prepend("<tr><td>" + message.fromUser + "</td><td>" + message.localDateTime +
+                    "</td><td>" + message.content + "</td></tr>");
+            }
+
+            function messenger(user) {
+                $('#toUser').val(user);
+                $('#content').val("");
+            }
+            function getOnlineUsers(){
+                $.getJSON(
+                    "/websocket/users",   // url
+                    function(results){           // success
+                        console.log(results);
+                        var existingMessage = $("#users").html();
+                        $("#users").html("");
+                        $.each(results, function(index, value){
+                            if($("#login").val() != value){
+                                $("#users").append("<li class='list-group-item'><b>" + value
+                                    + "</b><button type='button' class='btn btn-primary btn-sm float-sm-right' onclick='messenger(\""+value+"\")'>Message</button></li>");
+                            }
+                        });
+                        if($("#users").html()==""){
+                            $("#users").html(existingMessage);
+                        }
+                    }
+                );
+            }
+            setInterval( getOnlineUsers, 3000 );
+
+            $(function () {
+                $("form").on('submit', function (e) {
+                    e.preventDefault();
+                });
+                $("#send").hide();
+
+                $( "#connect" ).click(function() { connect(); });
+                $( "#disconnect" ).click(function() { disconnect(); });
+                $( "#send" ).click(function() { sendName(); });
+
+            });
+
+        </script>
+    </div>
+</body>
+</html>
