@@ -1,6 +1,7 @@
 package com.technicalsand.events.sse;
 
 import lombok.AllArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,7 +15,6 @@ import java.io.IOException;
 @RequestMapping("/sse")
 @AllArgsConstructor
 public class SseContoller {
-
 	private final SseService sseService;
 
 	@GetMapping("/client")
@@ -29,10 +29,14 @@ public class SseContoller {
 	}
 
 	@GetMapping("/message")
-	public @ResponseBody
-	void sendMessages(@RequestParam String message,
+	public @ResponseBody void sendMessages(@RequestParam String message,
 					  @RequestParam(required = false) String user) throws IOException {
-
 		sseService.process(message, user);
 	}
+
+	@Scheduled(cron = "*/5 * * ? * *")
+	public void runJob() throws IOException {
+		sseService.process("Scheduled job run", "Job");
+	}
+
 }

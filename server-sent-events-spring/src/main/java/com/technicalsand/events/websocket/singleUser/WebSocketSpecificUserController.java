@@ -15,8 +15,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -25,33 +23,30 @@ import java.util.TreeSet;
 @AllArgsConstructor
 public class WebSocketSpecificUserController {
 
-	private SocketSessionRegistry socketSessionRegistry;
+	private SessionsStorage sessionsStorage;
 	private SimpMessagingTemplate template;
 
 	@GetMapping("websocket/user")
 	public String getClient(ModelMap map){
-		map.addAttribute("defaultUser", socketSessionRegistry.getRandomUserName());
+		map.addAttribute("defaultUser", sessionsStorage.getRandomUserName());
 		return "websocketClientSpecificUser";
 	}
 
 	@GetMapping("websocket/users")
 	public @ResponseBody ResponseEntity<SortedSet<String>> getOnlineUsers(){
-		SortedSet<String> users = new TreeSet(socketSessionRegistry.getAllSessionIds().keySet());
+		SortedSet<String> users = new TreeSet(sessionsStorage.getAllSessionIds().keySet());
 		return ResponseEntity.ok()
 				.body(users);
 	}
 
 	@MessageMapping("/websocket/message")
-	public void message(Message message) throws Exception {
-		String sessionId=socketSessionRegistry.getSessionId(message.getToUser());
+	public void message(Message message) {
+		String sessionId=sessionsStorage.getSessionId(message.getToUser());
 		message.setLocalDateTime(LocalDateTime.now());
-		template.convertAndSendToUser(sessionId,"/topic/message", message ,createHeaders(sessionId));
-	}
-
-	private MessageHeaders createHeaders(String sessionId) {
 		SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
 		headerAccessor.setSessionId(sessionId);
 		headerAccessor.setLeaveMutable(true);
-		return headerAccessor.getMessageHeaders();
+		template.convertAndSendToUser(sessionId,"/topic/message", message ,headerAccessor.getMessageHeaders());
 	}
+
 }

@@ -11,9 +11,8 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 @Slf4j
 @Component
 public class STOMPDisconnectEventListener implements ApplicationListener<SessionDisconnectEvent> {
-
     @Autowired
-    private SocketSessionRegistry webAgentSessionRegistry;
+    private SessionsStorage sessionsStorage;
 
     @Override
     @EventListener
@@ -22,6 +21,6 @@ public class STOMPDisconnectEventListener implements ApplicationListener<Session
         //disconnect by sessionid
         String sessionId = sha.getSessionId();
         log.info("Disconnect sessionId: " + sessionId);
-        webAgentSessionRegistry.unregisterSessionId(sessionId);
+        sessionsStorage.unregisterSessionId(sessionId);
     }
 }

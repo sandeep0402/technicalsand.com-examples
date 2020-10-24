@@ -13,5 +13,4 @@ public class Notification {
 	private String message;
 	@Builder.Default
 	private LocalDateTime localDateTime = LocalDateTime.now();
-
 }

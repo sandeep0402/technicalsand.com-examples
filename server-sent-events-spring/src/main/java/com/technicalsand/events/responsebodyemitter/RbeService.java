@@ -26,9 +26,9 @@ public class RbeService {
 	public ResponseBodyEmitter events() {
 		ResponseBodyEmitter emitter = new ResponseBodyEmitter();
 			try {
-				String message = "Only text message can be sent";
+				String message = " Only text message can be sent. ";
 				for(int i=0; i<5; i++) {
-					emitter.send(message + " "+ (i+1) , MediaType.TEXT_PLAIN);
+					emitter.send((i+1) + message , MediaType.TEXT_PLAIN);
 					Thread.sleep(1000);
 				}
 				emitter.complete();

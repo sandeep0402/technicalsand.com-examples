@@ -110,7 +110,7 @@
                 console.log("Disconnected");
             }
 
-            function sendName() {
+            function sendMessage() {
                 stompClient.send("/app/websocket/message", {},
                     JSON.stringify({'toUser': $("#toUser").val(),
                         'content': $("#content").val(),
@@ -161,7 +161,7 @@
 
                 $( "#connect" ).click(function() { connect(); });
                 $( "#disconnect" ).click(function() { disconnect(); });
-                $( "#send" ).click(function() { sendName(); });
+                $( "#send" ).click(function() { sendMessage(); });
 
             });
 

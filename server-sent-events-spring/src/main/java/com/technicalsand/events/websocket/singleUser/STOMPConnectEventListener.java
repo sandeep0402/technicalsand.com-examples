@@ -9,10 +9,9 @@ import org.springframework.web.socket.messaging.SessionConnectEvent;
 
 @Slf4j
 @Service
-public class STOMPConnectEventListener  implements ApplicationListener<SessionConnectEvent> {
-
+public class STOMPConnectEventListener implements ApplicationListener<SessionConnectEvent> {
     @Autowired
-    private SocketSessionRegistry webAgentSessionRegistry;
+    private SessionsStorage sessionsStorage;
 
     @Override
     public void onApplicationEvent(SessionConnectEvent event) {
@@ -21,8 +20,6 @@ public class STOMPConnectEventListener  implements ApplicationListener<SessionCo
         String agentId = sha.getNativeHeader("login").get(0);
         String sessionId = sha.getSessionId();
         log.info("agentId: "+ agentId + ", sessionId: " + sessionId);
-        webAgentSessionRegistry.registerSessionId(agentId,sessionId);
+        sessionsStorage.registerSessionId(agentId,sessionId);
     }
-
-
 }
