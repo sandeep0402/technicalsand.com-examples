@@ -25,7 +25,7 @@ import java.util.List;
 @Service
 public class GoogleDriveManager {
 
-	private static final String APPLICATION_NAME = "Google Drive API Java Quickstart";
+	private static final String APPLICATION_NAME = "Technicalsand.com - Google Drive API Java Quickstart";
 	private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
 	private static final String TOKENS_DIRECTORY_PATH = "tokens";
 	/**
@@ -66,7 +66,7 @@ public class GoogleDriveManager {
 				.setDataStoreFactory(new FileDataStoreFactory(new java.io.File(TOKENS_DIRECTORY_PATH)))
 				.setAccessType("offline")
 				.build();
-		LocalServerReceiver receiver = new LocalServerReceiver.Builder().setHost("127.0.0.1").setPort(8080).build();
+		LocalServerReceiver receiver = new LocalServerReceiver.Builder().setHost("127.0.0.1").setPort(8089).build();
 
 		return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
 	}
