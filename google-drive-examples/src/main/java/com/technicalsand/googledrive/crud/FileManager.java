@@ -1,9 +1,6 @@
 package com.technicalsand.googledrive.crud;
 
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.http.FileContent;
 import com.google.api.client.http.InputStreamContent;
-import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
@@ -36,12 +33,10 @@ public class FileManager {
 	}
 
 	public List<File> listFolderContent(String parentId) throws IOException, GeneralSecurityException {
-		if(parentId == null){
+		if (parentId == null) {
 			parentId = "root";
 		}
 		String query = "'" + parentId + "' in parents";
-
-		// Print the names and IDs for up to 10 files.
 		FileList result = googleDriveManager.getInstance().files().list()
 				.setQ(query)
 				.setPageSize(10)
@@ -95,16 +90,16 @@ public class FileManager {
 	}
 
 	private String findOrCreateFolder(String parentId, String folderName, Drive driveInstance) throws Exception {
-		File fileMetadata = new File();
-		fileMetadata.setMimeType("application/vnd.google-apps.folder");
-		fileMetadata.setName(folderName);
-
 		String folderId = searchFolderId(parentId, folderName, driveInstance);
 		// Folder already exists, so return id
 		if (folderId != null) {
 			return folderId;
 		}
 		//Folder dont exists, create it and return folderId
+		File fileMetadata = new File();
+		fileMetadata.setMimeType("application/vnd.google-apps.folder");
+		fileMetadata.setName(folderName);
+
 		if (parentId != null) {
 			fileMetadata.setParents(Collections.singletonList(parentId));
 		}
